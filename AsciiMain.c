@@ -7,10 +7,16 @@
 
 void user_movement(void);
 void monster_AI(void);
+void weather_sim(int season_change);
 
 int i = 0;
 int d = 0;
 int turn = 0;
+int tmp_turn = 0;
+int temp = 70;
+int wind_speed;
+int wind_dir;
+int season;
 
 struct termios old_tio, new_tio;
 
@@ -49,6 +55,9 @@ int main(void) {
     new_tio.c_lflag &=(~ICANON & ~ECHO);
     tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
     
+    /* The season should probably be set to winter by default */
+    season = rand() % 4;
+    
     while(1) {
         printf("|");
         i++;
@@ -71,7 +80,22 @@ int main(void) {
             if(d == 10) {
                 d = 0;
                 turn++;
-                
+                if(character.z == 0) {
+                    character.z = 10;
+                    monster.z -= 10;
+                }
+                if(character.z == -1) {
+                    character.z = 10;
+                    monster.z += 10;
+                }
+                if(character.y == 19) {
+                    character.y = 1;
+                    monster.y -= 20;
+                }
+                if(character.y == 0) {
+                    character.y = 19;
+                    monster.y += 20;
+                }
                 if(character.z == monster.z && character.y == monster.y) {
                     if(rand() % 2 == 0) {
                         character.hp -= rand() % 5;
@@ -87,7 +111,15 @@ int main(void) {
                     monster.hp = 0;
                 }
                 
-                printf("turn: %i character hp: %i monster hp: %i\n", turn, character.hp, monster.hp);
+                if(turn - tmp_turn == 100) {
+                    tmp_turn = turn;
+                    weather_sim(1);
+                }
+                else {
+                    weather_sim(0);
+                }
+                
+                printf("turn: %i character hp: %i monster hp: %i character z: %i character y: %i\n", turn, character.hp, monster.hp, character.z, character.y);
                 user_movement();
                 monster_AI();
                 system("clear");
@@ -191,6 +223,37 @@ void monster_AI(void) {
     
         if(x == 3) {
             monster.y++;
+        }
+    }
+}
+
+void weather_sim(int season_change) {
+    
+    if(rand() % 5 == 0) {
+        temp += rand() % 10;
+    }
+    if(rand() % 5 == 1) {
+        temp -= rand() % 10;
+    }
+    
+    if(rand() % 5 == 0) {
+        wind_speed += rand() % 3;
+    }
+    if(rand() % 5 == 1) {
+        wind_speed -= rand() % 3;
+    }
+    
+    if(rand() % 5 == 0) {
+        wind_dir += rand() % 9;
+    }
+    if(rand() % 5 == 1) {
+        wind_dir -= rand() % 9;
+    }
+    
+    if(season_change == 1) {
+        season++;
+        if(season >= 5) {
+            season = 1;
         }
     }
 }
