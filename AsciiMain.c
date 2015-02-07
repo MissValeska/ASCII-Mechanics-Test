@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <termios.h>
 
 void user_movement(void);
 void monster_AI(void);
@@ -10,6 +11,9 @@ void monster_AI(void);
 int i = 0;
 int d = 0;
 int turn = 0;
+
+struct termios old_tio, new_tio;
+
 struct chr_pos {
     int hp;
     int z;
@@ -38,6 +42,12 @@ int main(void) {
     
     pos_filler(&character, 0);
     pos_filler(&monster, 1);
+    
+    tcgetattr(STDIN_FILENO,&old_tio);
+    new_tio=old_tio;
+    
+    new_tio.c_lflag &=(~ICANON & ~ECHO);
+    tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
     
     while(1) {
         printf("|");
@@ -87,27 +97,28 @@ int main(void) {
 }
 
 void user_movement(void) {
-    
-    char *request = (char *) malloc(16);
-    fgets(request, 16, stdin);
+    char request;
+    request = getchar();
     fflush(stdin);
     
-    *strrchr(request, '\n') = '\0';
-    
-    if(strcmp(request, "w") == 0) {
+    if(request == 'w') {
         character.z--;
     }
     
-    if(strcmp(request, "a") == 0) {
+    if(request == 'a') {
         character.y--;
     }
     
-    if(strcmp(request, "s") == 0) {
+    if(request == 's') {
         character.z++;
     }
     
-    if(strcmp(request, "d") == 0) {
+    if(request == 'd') {
         character.y++;
+    }
+    if(request == 'q') {
+        tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
+        exit(0);
     }
 }
 
