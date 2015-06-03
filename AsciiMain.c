@@ -24,9 +24,13 @@ struct chr_pos {
     int hp;
     int z;
     int y;
+    int death;
+    int c;
 };
 
 void pos_filler(struct chr_pos *tmp, int type) {
+    tmp->death = 0;
+    tmp->c = 0;
     if(type == 0) {
         tmp->hp = 20;
         tmp->z = 5;
@@ -61,6 +65,7 @@ int main(void) {
     while(1) {
         printf("|");
         i++;
+        
         if(d == character.z && i == character.y) {
             printf("@");
             if(i < 20) {
@@ -96,19 +101,33 @@ int main(void) {
                     character.y = 19;
                     monster.y += 20;
                 }
-                if(character.z == monster.z && character.y == monster.y) {
-                    if(rand() % 2 == 0) {
+                if(character.death == 0 || monster.death == 0) {
+                    if(character.z == monster.z && character.y == monster.y) {
+                        if(rand() % 2 == 0) {
                         character.hp -= rand() % 5;
-                    }
-                    if(rand() % 2 == 0) {
+                        }
+                        if(rand() % 2 == 0) {
                         monster.hp -= rand() % 5;
+                        }
                     }
                 }
                 if(character.hp < 0) {
                     character.hp = 0;
+                    character.death = 1;
+                    if(character.c == 0) {
+                        printf("You died!\n");
+                        character.c++;
+                        break;
+                    }
                 }
                 if(monster.hp < 0) {
                     monster.hp = 0;
+                    monster.death = 1;
+                    if(monster.c == 0) {
+                        printf("You survived!\n");
+                        monster.c++;
+                        break;
+                    }
                 }
                 
                 if(turn - tmp_turn == 100) {
@@ -126,9 +145,11 @@ int main(void) {
             }
         }
     }
+    return 0;
 }
 
 void user_movement(void) {
+    if(character.death != 1) {
     char request;
     request = getchar();
     fflush(stdin);
@@ -153,9 +174,10 @@ void user_movement(void) {
         exit(0);
     }
 }
+}
 
 void monster_AI(void) {
-    
+    if(monster.death != 1) {
     int seek_z;
     int seek_y;
     int z_dir;
@@ -226,6 +248,7 @@ void monster_AI(void) {
         }
     }
 }
+}
 
 void weather_sim(int season_change) {
     
@@ -256,4 +279,19 @@ void weather_sim(int season_change) {
             season = 1;
         }
     }
+}
+
+/*int gravity_attraction() {
+    
+    G * M1 * m2 / dist2;
+    
+}*/
+
+int physics_sim(int mass, int acceleration) {
+    
+    int force;
+    
+    force=mass*acceleration;
+    
+    return force;
 }
